@@ -7,11 +7,13 @@ This was written for use with the Spotify iOS-SDK but should work with minor or 
 
 ## Installation
 
-1. Enter your Client ID, Client Secret (from your Spotify Developer account) and redirect URL (from your app) directly in the Go file and compile. (the redirect URI only seems to be an extra validation check on the id/secret by Spotify, it's not connected to)
+1. Set environment variables `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` and `SPOTIFY_AUTH_REDIRECT_URI`. Client ID, Client Secret are from your Spotify Developer account and redirect URI is specific to your app (see source code for notes).
 
 2. Copy/symlink your https key and cert files into the same directory (DER or PEM format seems to work)
 
-3. That's it. Just run it (only argument is the listening port), or put in a systemd unit to have it run detached from a terminal.
+3. That's it. Just run it (only argument is the listening port), or put in a systemd unit to have it run detached from a terminal
+or use the `Dockerfile` editing it for your needs
+to build a docker image to run. 
 
 ## Notes
 
