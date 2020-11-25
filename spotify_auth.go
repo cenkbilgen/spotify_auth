@@ -22,12 +22,13 @@ import (
 
 /////////////  App Specific Constants //////////////////////
 
-// From your Spotify Developer Dashboard
-const clientID = "..."
-const clientSecret = "..."
+var clientID string // $SPOTIFY_CLIENT_ID
+var clientSecret string // $SPOTIFY_CLIENT_SECRET
 
-// From your app
-const redirectURI = "..." // ie. myapp://spotify-login-callback - Used here by Spotify for code validation only, I think
+// the URI user will be redirected to after login
+// ie "myapp://spotify_login_callback"
+// used by Spotify not just for return view/page, but also code validation i think
+var redirectURI string
 
 ////////////////////////////////////////////////////////////
 
@@ -38,14 +39,12 @@ const (
   RefreshToken GrantType = "refresh_token"
 )
 
-// The token swap and token refresh endpoints on Spotify are nearly identical, so using the same function
+// The token swap and token refresh endpoints on Spotify are nearly identical
+// common function for both endpoints
 
-// 1. get the access code/refresh token
-// for the Spotify iOS-SDK, the input to this service is sent url-encoded in body, seems to be oauth2 spec
-
-// 2. send that to Spotify (along with clientid/secret, type (refresh/swap) as url-encoded body
-
-// 3. response from Spotify with access token is JSON encoded body, send pass-thru unaltered back to the client as JSON
+// 1. the input to this service is with the auto code is url-encoded, not JSON, seems to be oauth2 spec
+// 2. together with clientid/secret, grant_type (refresh/swap) sent to Spotify as url-encoded body
+// 3. response from Spotify is JSON encoded body, send pass-thru unaltered back to the client as JSON
 
 func TokenGrant(grantType GrantType, response http.ResponseWriter, request *http.Request, _ httprouter.Params) {
 
@@ -117,11 +116,19 @@ func main() {
   log.Printf("Starting up %v with client id %v\n", os.Args[0], clientID)
 
   if len(os.Args) != 2 {
-    log.Println("Arguments Error. [port]")
-    os.Exit(1)
+    log.Fatal("Arguments Error. [port]")
   }
 
   port := os.Args[1]
+
+  // -- Env
+
+  clientID = os.Getenv("SPOTIFY_CLIENT_ID")
+  clientSecret = os.Getenv("SPOTIFY_CLIENT_SECRET")
+  redirectURI = os.Getenv("SPOTIFY_AUTH_REDIRECT_URI")
+  if len(clientID) == 0 || len(clientSecret) == 0 || len(redirectURI) == 0 {
+  log.Fatal("Set env SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET and SPOTIFY_AUTH_REDIRECT_URI")
+  }
 
   // -- Router
 
@@ -130,7 +137,6 @@ func main() {
   router.POST("/token_swap", TokenSwap)
   router.POST("/token_refresh", TokenRefresh)
 
-  // make sure the https key and cert are in the working dir, DER or PEM works
   priv_key := "server.key"
   pub_key := "server.crt"
   err := http.ListenAndServeTLS(":" + port, pub_key, priv_key, router)
